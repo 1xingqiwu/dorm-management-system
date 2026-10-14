@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ylb.mapper.TbRoomMapper">
+
+    <resultMap id="BaseResultMap" type="com.ylb.entity.TbRoom">
+        <id column="room_id" property="roomId" />
+        <result column="building_id" property="buildingId" />
+        <result column="floor_number" property="floorNumber" />
+        <result column="room_number" property="roomNumber" />
+        <result column="category" property="category" />
+        <result column="capacity" property="capacity" />
+        <result column="occupied" property="occupied" />
+        <result column="electricity_balance" property="electricityBalance" />
+        <result column="water_balance" property="waterBalance" />
+        <result column="last_clean_score" property="lastCleanScore" />
+        <result column="create_time" property="createTime" />
+    </resultMap>
+
+    <!-- 根据ID查询 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM tb_room WHERE room_id = #{roomId}
+    </select>
+
+    <!-- 充值更新余额 -->
+    <update id="addBalance">
+        UPDATE tb_room
+        SET electricity_balance = electricity_balance + #{amount}
+        WHERE room_id = #{roomId}
+    </update>
+
+
+    <!-- 查询宿管管理楼栋下的房间列表 -->
+    <!-- 需要关联 tb_dorm_manager 表来确认权限 -->
+    <select id="selectListByManagerId" resultMap="BaseResultMap">
+        SELECT r.*
+        FROM tb_room r
+        JOIN tb_dorm_manager m ON r.building_id = m.manage_building_id
+        <where>
+            AND m.manager_id = #{managerId}
+            <if test="roomNumber != null and roomNumber != ''">
+                AND r.room_number LIKE CONCAT('%', #{roomNumber}, '%')
+            </if>
+        </where>
+        ORDER BY r.floor_number ASC, r.room_number ASC
+    </select>
+
+    <!-- 根据楼栋ID查询房间列表 -->
+    <select id="selectByBuildingId" resultMap="BaseResultMap">
+        SELECT *
+        FROM tb_room
+        WHERE building_id = #{buildingId}
+        ORDER BY floor_number ASC, room_number ASC
+    </select>
+</mapper>

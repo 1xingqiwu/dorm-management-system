@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ylb.mapper.TbLeaveApplyMapper">
+
+    <resultMap id="BaseResultMap" type="com.ylb.entity.TbLeaveApply">
+        <id column="apply_id" property="applyId" />
+        <result column="student_id" property="studentId" />
+        <result column="counselor_id" property="counselorId" />
+        <result column="type" property="type" />
+        <result column="start_time" property="startTime" />
+        <result column="end_time" property="endTime" />
+        <result column="reason" property="reason" />
+        <result column="status" property="status" />
+        <result column="audit_remark" property="auditRemark" />
+        <result column="create_time" property="createTime" />
+    </resultMap>
+
+    <resultMap id="VOResultMap" type="com.ylb.dto.vo.LeaveApplyVO" extends="BaseResultMap">
+        <result column="student_name" property="studentName" />
+        <result column="student_no" property="studentNo" />
+    </resultMap>
+
+    <!-- 插入申请 -->
+    <insert id="insert" parameterType="com.ylb.entity.TbLeaveApply">
+        INSERT INTO tb_leave_apply
+        (student_id, counselor_id, type, start_time, end_time, reason, status, create_time)
+        VALUES
+            (#{studentId}, #{counselorId}, #{type}, #{startTime}, #{endTime}, #{reason}, 0, NOW())
+    </insert>
+
+    <!-- 动态查询列表 -->
+    <select id="selectList" resultMap="VOResultMap">
+        SELECT
+        l.*,
+        s.name as student_name,
+        s.student_no
+        FROM tb_leave_apply l
+        LEFT JOIN tb_student s ON l.student_id = s.student_id
+        <where>
+            <if test="studentId != null">
+                AND l.student_id = #{studentId}
+            </if>
+            <if test="counselorId != null">
+                AND l.counselor_id = #{counselorId}
+            </if>
+            <if test="status != null">
+                AND l.status = #{status}
+            </if>
+        </where>
+        ORDER BY l.create_time DESC
+    </select>
+
+    <update id="updateAudit">
+        UPDATE tb_leave_apply
+        SET
+            status = #{status},
+            audit_remark = #{auditRemark},
+            audit_time = NOW()
+        WHERE apply_id = #{applyId}
+    </update>
+</mapper>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ylb.mapper.TbItemMapper">
+
+    <!-- 1. 物品管理 -->
+    <select id="selectItemList" resultType="com.ylb.entity.TbItem">
+        SELECT * FROM tb_item ORDER BY item_id ASC
+    </select>
+
+    <insert id="insertItem">
+        INSERT INTO tb_item (name, total_count, available_count, location)
+        VALUES (#{name}, #{totalCount}, #{availableCount}, #{location})
+    </insert>
+
+    <update id="updateItem">
+        UPDATE tb_item SET name=#{name}, total_count=#{totalCount},
+                           available_count=#{availableCount}, location=#{location}
+        WHERE item_id=#{itemId}
+    </update>
+
+    <delete id="deleteItem">
+        DELETE FROM tb_item WHERE item_id=#{itemId}
+    </delete>
+
+    <!-- 2. 库存操作 (核心) -->
+    <update id="decreaseStock">
+        UPDATE tb_item SET available_count = available_count - 1
+        WHERE item_id = #{itemId} AND available_count > 0
+    </update>
+
+    <update id="increaseStock">
+        UPDATE tb_item SET available_count = available_count + 1
+        WHERE item_id = #{itemId}
+    </update>
+
+    <!-- 3. 借用记录操作 -->
+    <insert id="insertRecord">
+        INSERT INTO tb_borrow_record (student_id, item_id, borrow_time, status)
+        VALUES (#{studentId}, #{itemId}, NOW(), 0)
+    </insert>
+
+    <update id="updateRecordStatus">
+        UPDATE tb_borrow_record
+        SET status = #{status}, return_time = NOW()
+        WHERE record_id = #{recordId}
+    </update>
+
+    <select id="selectRecordList" resultType="com.ylb.entity.TbBorrowRecord">
+        SELECT r.*, s.name as studentName, i.name as itemName, s.student_no as studentNo,
+        s.class_name as className
+        FROM tb_borrow_record r
+        LEFT JOIN tb_student s ON r.student_id = s.student_id
+        LEFT JOIN tb_item i ON r.item_id = i.item_id
+        <where>
+            <if test="studentId != null">AND r.student_id = #{studentId}</if>
+        </where>
+        ORDER BY r.status ASC, r.borrow_time DESC
+    </select>
+
+</mapper>

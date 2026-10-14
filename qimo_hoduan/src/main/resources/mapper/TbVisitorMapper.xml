@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ylb.mapper.TbVisitorMapper">
+
+    <resultMap id="VisitorVOMap" type="com.ylb.dto.vo.VisitorVO">
+        <id column="visitor_id" property="visitorId" />
+        <result column="visitor_name" property="visitorName" />
+        <result column="phone" property="phone" />
+        <result column="id_card" property="idCard" />
+        <result column="reason" property="reason" />
+        <result column="visit_start_time" property="visitStartTime" />
+        <result column="visit_end_time" property="visitEndTime" />
+        <result column="status" property="status" />
+        <result column="create_time" property="createTime" />
+
+        <!-- 扩展字段 -->
+        <result column="student_name" property="studentName" />
+        <result column="student_no" property="studentNo" />
+        <result column="room_info" property="roomInfo" />
+    </resultMap>
+
+    <!-- 查询访客列表 -->
+    <select id="selectList" resultMap="VisitorVOMap">
+        SELECT
+        v.*,
+        s.name as student_name,
+        s.student_no,
+        CONCAT(b.name, ' - ', r.room_number) as room_info
+        FROM tb_visitor v
+        LEFT JOIN tb_student s ON v.student_id = s.student_id
+        LEFT JOIN tb_building b ON s.building_id = b.building_id
+        LEFT JOIN tb_room r ON s.room_id = r.room_id
+        <where>
+            <if test="name != null and name != ''">
+                AND v.visitor_name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="status != null">
+                AND v.status = #{status}
+            </if>
+        </where>
+        ORDER BY v.create_time DESC
+    </select>
+
+    <!-- 更新状态 -->
+    <update id="update" parameterType="com.ylb.entity.TbVisitor">
+        UPDATE tb_visitor
+        <set>
+            <if test="status != null">status = #{status},</if>
+            <if test="visitEndTime != null">visit_end_time = #{visitEndTime},</if>
+        </set>
+        WHERE visitor_id = #{visitorId}
+    </update>
+
+    <!-- 插入申请(如果是学生端提交用，这里先备着) -->
+    <insert id="insert">
+        INSERT INTO tb_visitor (student_id, visitor_name, phone, id_card, reason, visit_start_time, status, create_time)
+        VALUES (#{studentId}, #{visitorName}, #{phone}, #{idCard}, #{reason}, #{visitStartTime}, 0, NOW())
+    </insert>
+
+</mapper>

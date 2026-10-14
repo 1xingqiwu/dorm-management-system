@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ylb.mapper.TbStudentMapper">
+
+    <!-- 定义一个结果映射 -->
+    <resultMap id="ProfileResultMap" type="com.ylb.dto.vo.StudentProfileVO">
+        <result column="student_no" property="studentNo" />
+        <result column="name" property="name" />
+        <result column="gender_str" property="gender" />
+        <result column="college_name" property="collegeName" />
+        <result column="major_name" property="majorName" />
+        <result column="class_name" property="className" />
+        <result column="user_phone" property="phone" />
+
+        <result column="building_name" property="buildingName" />
+        <result column="room_number" property="roomNumber" />
+        <result column="bed_number" property="bedNumber" />
+
+        <result column="counselor_name" property="counselorName" />
+        <result column="counselor_phone" property="counselorPhone" />
+        <result column="emergency_contact" property="emergencyContact" />
+        <result column="emergency_phone" property="emergencyPhone" />
+        <result column="room_id" property="roomId" />
+        <result column="building_id" property="buildingId" />
+        <result column="counselor_id" property="counselorId" />
+    </resultMap>
+
+    <!-- 查询列表 (关联 sys_user 查手机号) -->
+    <resultMap id="StudentListMap" type="com.ylb.dto.vo.StudentProfileVO">
+        <result column="student_id" property="studentId" />
+        <result column="student_no" property="studentNo" />
+        <result column="name" property="name" />
+        <result column="gender_str" property="gender" />
+        <result column="class_name" property="className" />
+        <result column="user_phone" property="phone" />
+        <result column="room_number" property="roomNumber" />
+        <result column="building_name" property="buildingName" />
+        <result column="status_str" property="status" />
+        <result column="emergency_contact" property="emergencyContact" />
+        <result column="emergency_phone" property="emergencyPhone" />
+    </resultMap>
+
+    <select id="selectListByCounselor" resultMap="StudentListMap">
+        SELECT
+        s.student_id,
+        s.student_no,
+        s.name,
+        s.emergency_contact,
+        s.emergency_phone,
+        CASE s.gender WHEN 1 THEN '男' ELSE '女' END as gender_str,
+        s.class_name,
+        u.phone as user_phone,
+        b.name as building_name,
+        r.room_number,
+        CASE s.status WHEN 1 THEN '在校' WHEN 2 THEN '休学' ELSE '毕业' END as status_str
+        FROM tb_student s
+        LEFT JOIN sys_user u ON s.student_id = u.user_id
+        LEFT JOIN tb_building b ON s.building_id = b.building_id
+        LEFT JOIN tb_room r ON s.room_id = r.room_id
+        <where>
+            AND s.counselor_id = #{counselorId}
+            <if test="name != null and name != ''">
+                AND s.name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="studentNo != null and studentNo != ''">
+                AND s.student_no LIKE CONCAT('%', #{studentNo}, '%')
+            </if>
+            <if test="className != null and className != ''">
+                AND s.class_name LIKE CONCAT('%', #{className}, '%')
+            </if>
+        </where>
+        ORDER BY s.student_no ASC
+    </select>
+
+
+    <!-- 关联查询 SQL -->
+    <!-- 入参是 userId (对应 sys_user 的主键) -->
+    <select id="getProfileByUserId" resultMap="ProfileResultMap">
+        SELECT
+            s.student_no,
+            s.name,
+            CASE s.gender WHEN 1 THEN '男' ELSE '女' END as gender_str,
+            s.college_name,
+            s.major_name,
+            s.class_name,
+            s.bed_number,
+            s.emergency_contact,
+            s.emergency_phone,
+            s.room_id,
+            s.building_id,
+            s.counselor_id,
+            u.phone as user_phone,
+            b.name as building_name,
+            r.room_number,
+            c.name as counselor_name,
+            c.phone as counselor_phone
+
+        FROM tb_student s
+                 LEFT JOIN sys_user u ON s.student_id = u.user_id
+                 LEFT JOIN tb_building b ON s.building_id = b.building_id
+                 LEFT JOIN tb_room r ON s.room_id = r.room_id
+                 LEFT JOIN tb_counselor c ON s.counselor_id = c.counselor_id
+
+        WHERE s.student_id = #{userId}
+    </select>
+
+    <update id="updateEmergencyInfo">
+        UPDATE tb_student
+        SET
+            emergency_contact = #{contact},
+            emergency_phone = #{phone}
+        WHERE student_id = #{studentId}
+    </update>
+
+    <!-- 根据房间ID查询学生列表 -->
+    <select id="selectByRoomId" resultMap="ProfileResultMap">
+        SELECT
+            s.student_no,
+            s.name,
+            s.major_name,
+            s.class_name,
+            s.bed_number,
+            u.phone as user_phone
+        FROM tb_student s
+                 LEFT JOIN sys_user u ON s.student_id = u.user_id
+        WHERE s.room_id = #{roomId}
+        ORDER BY s.bed_number ASC
+    </select>
+
+    <!-- 查询我的室友 (同room_id，排除自己) -->
+    <select id="selectRoommates" resultMap="ProfileResultMap">
+        SELECT
+            s.name,
+            s.student_no,
+            CASE s.gender WHEN 1 THEN '男' ELSE '女' END as gender_str,
+            s.major_name,
+            s.class_name,
+            s.bed_number,
+            u.phone as user_phone
+        FROM tb_student s
+                 LEFT JOIN sys_user u ON s.student_id = u.user_id
+        WHERE s.room_id = #{roomId}
+          AND s.student_id != #{myId}  -- 排除自己
+        ORDER BY s.bed_number ASC
+    </select>
+
+
+    <!-- 注册时插入学生基本信息 -->
+    <insert id="insert" parameterType="com.ylb.entity.TbStudent">
+        INSERT INTO tb_student
+        (
+            student_id,
+            student_no,
+            name,
+            gender,
+            status,
+            create_time
+        )
+        VALUES
+            (
+                #{studentId},   -- 对应 sys_user 生成的主键 ID
+                #{studentNo},   -- 学号
+                #{name},        -- 姓名
+                #{gender},      -- 性别
+                1,              -- status: 默认 1 (在校)
+                NOW()           -- create_time: 当前时间
+            )
+    </insert>
+
+    <!-- 管理员新增学生账号时建档：仅写必填列，gender/status 使用数据库默认值 -->
+    <insert id="insertByAdmin" parameterType="com.ylb.entity.TbStudent">
+        INSERT INTO tb_student
+        (
+            student_id,
+            student_no,
+            name,
+            create_time
+        )
+        VALUES
+            (
+                #{studentId},
+                #{studentNo},
+                #{name},
+                NOW()
+            )
+    </insert>
+
+</mapper>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ylb.mapper.TbBuildingMapper">
+
+    <resultMap id="BaseResultMap" type="com.ylb.entity.TbBuilding">
+        <id column="building_id" property="buildingId" />
+        <result column="name" property="name" />
+        <result column="type" property="type" />
+        <result column="total_floor" property="totalFloor" />
+        <result column="location" property="location" />
+        <result column="description" property="description" />
+    </resultMap>
+
+    <!-- 查询宿管管理的楼栋 -->
+    <select id="selectByManagerId" resultType="com.ylb.entity.TbBuilding">
+        SELECT b.*
+        FROM tb_building b
+                 LEFT JOIN tb_dorm_manager m ON b.building_id = m.manage_building_id
+        WHERE m.manager_id = #{managerId}
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM tb_building WHERE building_id = #{buildingId}
+    </select>
+</mapper>

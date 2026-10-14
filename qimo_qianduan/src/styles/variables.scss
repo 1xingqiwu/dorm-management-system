@@ -1,0 +1,28 @@
+/* src/styles/variables.scss
+ * 全局设计 token：使用 CSS 自定义属性，定义在 :root 下全局可用，
+ * 组件内无需逐一 @use/@import，直接写 var(--xxx) 即可。
+ */
+:root {
+  /* 品牌主色 */
+  --color-primary: #409EFF;
+
+  /* 文字色 */
+  --color-text-inverse: #ffffff;   /* 深色背景上的主文字 */
+  --color-text-muted: #999999;     /* 次要/灰色文字 */
+  --color-text-header: #cbd5e1;    /* 顶部栏欢迎语等 */
+
+  /* 侧边栏 */
+  --color-sidebar-bg: #304156;
+  --color-sidebar-hover-text: #bfcbd9;
+  --color-sidebar-logo-bg: #2b2f3a;
+
+  /* 主内容区深色渐变两端 */
+  --color-page-bg-start: #1e293b;
+  --color-page-bg-end: #0f172a;
+
+  /* 顶部栏背景 */
+  --color-header-bg: rgba(15, 23, 42, 0.85);
+
+  /* 滚动条滑块 */
+  --color-scrollbar-thumb: rgba(255, 255, 255, 0.2);
+}

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ylb.mapper.TbElectricityLogMapper">
+    <resultMap id="BaseResultMap" type="com.ylb.entity.TbElectricityLog">
+        <id column="log_id" property="logId" />
+        <result column="room_id" property="roomId" />
+        <result column="amount" property="amount" />
+        <result column="balance_after" property="balanceAfter" />
+        <result column="operator_name" property="operatorName" />
+        <result column="payment_method" property="paymentMethod" />
+        <result column="create_time" property="createTime" />
+    </resultMap>
+
+    <insert id="insert">
+        INSERT INTO tb_electricity_log
+        (room_id, amount, balance_after, operator_name, payment_method, create_time)
+        VALUES
+            (#{roomId}, #{amount}, #{balanceAfter}, #{operatorName}, #{paymentMethod}, NOW())
+    </insert>
+
+    <select id="selectListByRoomId" resultMap="BaseResultMap">
+        SELECT * FROM tb_electricity_log WHERE room_id = #{roomId} ORDER BY create_time DESC
+    </select>
+</mapper>

@@ -1,0 +1,72 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: dorm-system
+  # 无论激活哪个 profile，都额外加载 application-local.yml（含真实密钥，已 gitignore）
+  # 这样 IDE 里任何运行配置（哪怕指定了别的 profile）都能正常启动，无需任何额外设置
+  config:
+    import: optional:classpath:application-local.yml
+
+  # 邮件配置
+  mail:
+    host: smtp.qq.com # 如果是163，写 smtp.163.com
+    port: 587
+    username: 1945894317@qq.com  # 邮箱
+    # 授权码由 application-local.yml 提供 (spring.mail.password)
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+  # 数据库配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/qm_sjk?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    # 数据库密码由 application-local.yml 提供 (spring.datasource.password)
+
+  # Redis配置
+  data:
+    redis:
+      host: localhost # Redis 服务器地址
+      port: 6379      # Redis 端口
+      password:       # 如果有密码请填写
+      database: 0     # 使用第0号数据库
+      timeout: 3000ms # 连接超时时间
+      lettuce:
+        pool:
+          max-active: 8  # 最大连接数
+          max-wait: -1ms # 最大阻塞等待时间
+          max-idle: 8    # 最大空闲连接
+          min-idle: 0    # 最小空闲连接
+
+# MyBatis 配置
+mybatis:
+  mapper-locations: classpath:mapper/*.xml  # XML文件位置
+  type-aliases-package: com.ylb.entity # 实体类包别名
+  configuration:
+    map-underscore-to-camel-case: true # 开启驼峰命名自动映射 (user_id -> userId)
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 控制台打印SQL日志
+
+# Swagger/Knife4j 配置
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+
+# JWT 配置
+jwt:
+  # 密钥(HS256 要求至少 32 字节)由 application-local.yml 提供 (jwt.secret)
+  # 令牌有效期(秒)，默认 24 小时
+  expiration: 86400
+
+# AI 配置
+ai:
+  deepseek:
+    # DeepSeek API Key 由 application-local.yml 提供 (ai.deepseek.api-key)
+    base-url: https://api.deepseek.com/chat/completions

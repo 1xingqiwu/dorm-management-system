@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ylb.mapper.TbHygieneCheckMapper">
+
+    <insert id="insert">
+        INSERT INTO tb_hygiene_check (room_id, score, deduct_reason, check_date, checker_name, create_time)
+        VALUES (#{roomId}, #{score}, #{deductReason}, #{checkDate}, #{checkerName}, NOW())
+    </insert>
+
+    <select id="selectListByRoomId" resultType="com.ylb.entity.TbHygieneCheck">
+        SELECT * FROM tb_hygiene_check
+        WHERE room_id = #{roomId}
+        ORDER BY check_date DESC
+    </select>
+
+    <!-- 查询辅导员管辖的房间卫生记录 -->
+    <select id="selectListByCounselorId" resultType="com.ylb.entity.TbHygieneCheck">
+        SELECT
+            h.*,
+            CONCAT(b.name, ' - ', r.room_number) as roomName
+        FROM tb_hygiene_check h
+                 JOIN tb_room r ON h.room_id = r.room_id
+                 JOIN tb_building b ON r.building_id = b.building_id
+        WHERE r.room_id IN (
+            -- 子查询：找出该辅导员管理的学生所在的房间ID (去重)
+            SELECT DISTINCT s.room_id
+            FROM tb_student s
+            WHERE s.counselor_id = #{counselorId}
+        )
+        ORDER BY h.check_date DESC
+    </select>
+
+</mapper>
